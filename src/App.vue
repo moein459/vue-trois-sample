@@ -1,35 +1,39 @@
 <template>
 
-  <Renderer shadow ref="renderer" :width="width" :height="height" alpha :orbit-ctrl="{ enableDamping: true, target }">
+  <Renderer
+      shadow
+      ref="renderer"
+      alpha
+      :resize="'true'"
+      :orbit-ctrl="{ enableDamping: true, target }">
 
-    <Camera :position="{ z: 400, x: 100, y: 100 }"/>
+    <Camera :position="{ z: 15, x: 1, y: 1 }"/>
 
     <Scene ref="scene">
 
       <HemisphereLight/>
 
       <DirectionalLight
-          ref="light"
-          :position="{ x: 125, y: 200, z: 200 }"
-          :rotation="{x: 30, y: 300, z: 30}"
-          cast-shadow :shadow-camera="{ top: 180, bottom: -120, left: -120, right: 120 }"
+          :shadow-map-size="{ width: 1024, height: 1024 }"
+          :intensity="1"
+          ref="directionalLight"
+          :position="{ x: 9, y: 15, z: 15 }"
+          cast-shadow
       />
 
-      <Group v-if="show">
-        <FbxModel
-            :scale="{x: .3, y: .3, z: .3}"
+      <Group>
+        <GltfModel
             :rotation="{y: 180}"
-            :position="{ y: 0 }"
-            src="/Grapple Guardian.fbx"
-            @load="onload" />
+            src="/model/scene.gltf"
+            @load="onload"/>
       </Group>
 
     </Scene>
 
     <EffectComposer>
-      <RenderPass />
+      <RenderPass/>
       <SSAOPass :kernelRadius="12" :minDistance=".005" :maxDistance=".1"/>
-      <UnrealBloomPass :strength=".15" />
+      <UnrealBloomPass :strength=".15"/>
     </EffectComposer>
 
   </Renderer>
@@ -42,12 +46,11 @@ import {
   Clock,
   Fog,
   GridHelper,
-  Vector3,
-  MeshPhongMaterial,
-  TextureLoader,
+  Mesh,
+  MeshStandardMaterial,
   PlaneGeometry,
   ShadowMaterial,
-  Mesh,
+  Vector3,
 } from 'three'
 
 export default {
@@ -55,74 +58,69 @@ export default {
   components: {},
   data() {
     return {
-      target: new Vector3(0, 100, 0),
+      target: new Vector3(0, 1, 0),
       mixer: null,
       clock: null,
-      show: false,
-      material: new MeshPhongMaterial(),
-      width: (window.innerWidth - 7).toString(),
-      height: (window.innerHeight - 7).toString()
+      scene: null,
+      renderer: null
     }
   },
   mounted() {
+    this.renderer= this.$refs.renderer;
+    this.scene = this.$refs.scene.scene;
 
-    const loader = new TextureLoader();
-    loader.load('TXTR_04C16D65.png', texture1 => {
-      this.material.map = texture1;
-
-      loader.load('TXTR_CB2E1926.png', texture2 => {
-        this.material.specularMap = texture2;
-
-        this.show = true;
-      });
-    });
-
-
-    const scene = this.$refs.scene.scene;
-    const light = this.$refs.light.light;
-    light.shadow.radius = 8;
-
-    console.log(light);
-    console.log(this.$refs.light)
-
-    scene.fog = new Fog(0xa0a0a0, 100, 20000);
-
-    const grid = new GridHelper(500, 10, 0xcccccc, 0xcccccc);
-    grid.material.opacity = 0.1;
-    grid.material.transparent = true;
-    this.$refs.scene.add(grid);
-
-    const geometry = new PlaneGeometry( 2000, 2000 );
-    geometry.rotateX( - Math.PI / 2 );
-
-    const material = new ShadowMaterial();
-    material.opacity = .425;
-
-    const plane = new Mesh( geometry, material );
-    plane.receiveShadow = true;
-    scene.add( plane );
+    this.setLightRadius();
+    this.addFog();
+    this.addGrid();
+    this.addShadowPlane();
   },
   methods: {
+    setLightRadius() {
+      this.$refs.directionalLight.light.shadow.radius = 12;
+    },
+    addFog() {
+      this.scene.fog = new Fog(0xa0a0a0, 1, 120);
+    },
+    addGrid() {
+      const grid = new GridHelper(10, 10, 0xcccccc, 0xcccccc);
+      grid.material.opacity = 0.1;
+      grid.material.transparent = true;
+      this.$refs.scene.add(grid);
+    },
+    addShadowPlane() {
+      const material = new ShadowMaterial();
+      material.opacity = .425;
+
+      const geometry = new PlaneGeometry(2000, 2000);
+      geometry.rotateX(-Math.PI / 2);
+
+      const plane = new Mesh(geometry, material);
+      plane.receiveShadow = true;
+
+      this.scene.add(plane);
+    },
     onload(object) {
+      this.fixMeshes(object);
 
-      object.children[2].material = this.material;
+      this.mixer = new AnimationMixer(object.scene);
+      const action = this.mixer.clipAction(object.animations[0]);
+      action.play();
 
-      this.mixer = new AnimationMixer(object);
-      const action1 = this.mixer.clipAction(object.animations[1]);
-      const action2 = this.mixer.clipAction(object.animations[2]);
-
-      action1.play();
-      action2.play();
-
-      object.traverse(function (child) {
+      this.clock = new Clock();
+      this.$refs.renderer.onBeforeRender(this.updateMixer);
+    },
+    fixMeshes(object) {
+      object.scene.traverse(function (child) {
         if (child.isMesh) {
+          const prevMaterial = child.material;
+          child.material = new MeshStandardMaterial();
+          child.material.map = prevMaterial.map;
+          child.material.specularMap = prevMaterial.specularMap;
+
           child.castShadow = true;
           child.receiveShadow = true;
         }
       });
-
-      this.clock = new Clock();
-      this.$refs.renderer.onBeforeRender(this.updateMixer);
     },
     updateMixer() {
       this.mixer.update(this.clock.getDelta());
@@ -142,10 +140,8 @@ body {
 }
 
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
+  height: 100vh;
+  overflow: hidden;
 }
 
 </style>
