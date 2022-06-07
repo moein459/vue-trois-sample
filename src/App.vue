@@ -24,7 +24,7 @@
       <Group>
         <GltfModel
             :rotation="{y: 180}"
-            src="/model/scene.gltf"
+            src="./model/scene.gltf"
             @load="onload"/>
       </Group>
 
