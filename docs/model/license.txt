@@ -1,0 +1,11 @@
+Model Information:
+* title:	Creatures>Dark Aether>Guardians>Sub>Grapple
+* source:	https://sketchfab.com/3d-models/creaturesdark-aetherguardianssubgrapple-27d5a01b938344a38d436a95616ac0af
+* author:	Iso-Didact (https://sketchfab.com/Matthew.James.Logothetis)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Creatures>Dark Aether>Guardians>Sub>Grapple" (https://sketchfab.com/3d-models/creaturesdark-aetherguardianssubgrapple-27d5a01b938344a38d436a95616ac0af) by Iso-Didact (https://sketchfab.com/Matthew.James.Logothetis) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
