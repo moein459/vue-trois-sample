@@ -1,7 +1,7 @@
 {
   "name": "trois-test",
   "version": "0.1.0",
-  "homepage": "https://github.com/moein459/vue-trois-sample",
+  "homepage": "https://github.com/moein459/vue-trois-sample/tree/master",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
