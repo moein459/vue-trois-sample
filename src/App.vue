@@ -5,25 +5,24 @@
       ref="renderer"
       alpha
       :resize="'true'"
-      :orbit-ctrl="{ enableDamping: true, target }">
+      :orbit-ctrl="{ enableDamping: true, target, autoRotate: true, autoRotateSpeed: 7, enablePan: false }">
 
-    <Camera :position="{ z: 15, x: 1, y: 1 }"/>
+    <Camera :position="{ z: -15, x: 3, y: 5 }"/>
 
     <Scene ref="scene">
 
-      <HemisphereLight/>
+      <HemisphereLight :itensity=".5"/>
 
       <DirectionalLight
           :shadow-map-size="{ width: 1024, height: 1024 }"
           :intensity="1"
           ref="directionalLight"
-          :position="{ x: 9, y: 15, z: 15 }"
+          :position="{ x: 9, y: 15, z: -15 }"
           cast-shadow
       />
 
       <Group>
         <GltfModel
-            :rotation="{y: 180}"
             src="./model/scene.gltf"
             @load="onload"/>
       </Group>
@@ -33,7 +32,7 @@
     <EffectComposer>
       <RenderPass/>
       <SSAOPass :kernelRadius="12" :minDistance=".005" :maxDistance=".1"/>
-      <UnrealBloomPass :strength=".15"/>
+      <UnrealBloomPass :strength=".17"/>
     </EffectComposer>
 
   </Renderer>
@@ -51,6 +50,7 @@ import {
   PlaneGeometry,
   ShadowMaterial,
   Vector3,
+  LinearEncoding
 } from 'three'
 
 export default {
@@ -66,7 +66,7 @@ export default {
     }
   },
   mounted() {
-    this.renderer= this.$refs.renderer;
+    this.renderer = this.$refs.renderer;
     this.scene = this.$refs.scene.scene;
 
     this.setLightRadius();
@@ -116,6 +116,7 @@ export default {
           child.material = new MeshStandardMaterial();
           child.material.map = prevMaterial.map;
           child.material.specularMap = prevMaterial.specularMap;
+          child.material.map.encoding = LinearEncoding
 
           child.castShadow = true;
           child.receiveShadow = true;
